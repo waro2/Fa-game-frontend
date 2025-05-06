@@ -1,1 +1,117 @@
-/* You can add global styles to this file, and also import other style files */
+/* ===== Variables & Configuration ===== */
+@use 'sass:color';
+
+$primary-color: #3a5a8a;
+$secondary-color: #4a6fa5;
+$accent-color: #d4af37;
+$dark-bg: #121212;
+$light-text: #f0f0f0;
+$error-color: #e74c3c;
+$success-color: #2ecc71;
+
+/* ===== Mixins ===== */
+@mixin card-style {
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  border: 1px solid rgba($accent-color, 0.3);
+}
+
+@mixin button-style {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ===== Base Styles ===== */
+body {
+  background-image: url("/assets/background.jpg");
+  background-size: cover;
+  background-attachment: fixed;
+  color: $light-text;
+  font-family: 'Roboto', sans-serif;
+
+  .secondary-element {
+    background-color: color.scale($secondary-color, $lightness: 10%);
+  }
+}
+
+/* ===== Typography ===== */
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Cinzel', serif;
+  color: $accent-color;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* ===== Components ===== */
+.btn {
+  @include button-style;
+  background-color: $secondary-color;
+  color: white;
+
+  &:hover {
+    background-color: color.scale($secondary-color, $lightness: 10%);
+    transform: translateY(-2px);
+  }
+
+  &-primary {
+    background-color: $accent-color;
+    color: $dark-bg;
+  }
+
+  &-danger {
+    background-color: $error-color;
+  }
+
+  &:disabled {
+    background-color: #666;
+    cursor: not-allowed;
+  }
+}
+
+/* ===== Layout ===== */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* ===== Game Components ===== */
+.game-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.player-area {
+  @include card-style;
+  padding: 1.5rem;
+  min-height: 300px;
+
+  &.current-player {
+    border: 2px solid $accent-color;
+    box-shadow: 0 0 15px rgba($accent-color, 0.5);
+  }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .game-board {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+
+  .container {
+    padding: 1rem;
+  }
+}

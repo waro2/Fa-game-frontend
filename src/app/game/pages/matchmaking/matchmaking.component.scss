@@ -1,0 +1,174 @@
+.matchmaking-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    .header {
+        text-align: center;
+        margin-bottom: 2rem;
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+    }
+
+    .player-info {
+        margin-bottom: 1.5rem;
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #34495e;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+    }
+
+    .mode-selection {
+        .mode-tabs {
+            display: flex;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #ddd;
+
+            button {
+                flex: 1;
+                padding: 0.75rem;
+                background: none;
+                border: none;
+                border-bottom: 3px solid transparent;
+                cursor: pointer;
+                font-weight: bold;
+                color: #7f8c8d;
+                transition: all 0.3s;
+
+                &.active {
+                    color: #3498db;
+                    border-bottom-color: #3498db;
+                }
+
+                &:hover:not(.active) {
+                    color: #2980b9;
+                }
+            }
+        }
+
+        .mode-content {
+            padding: 1rem;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+
+            .quick-match,
+            .private-game {
+                text-align: center;
+
+                p {
+                    color: #7f8c8d;
+                    margin-bottom: 1.5rem;
+                }
+
+                button {
+                    padding: 0.75rem 1.5rem;
+                    background-color: #2ecc71;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    font-size: 1rem;
+                    cursor: pointer;
+                    transition: background-color 0.3s;
+
+                    &:hover:not([disabled]) {
+                        background-color: #27ae60;
+                    }
+
+                    &[disabled] {
+                        background-color: #95a5a6;
+                        cursor: not-allowed;
+                    }
+                }
+            }
+
+            .private-game {
+
+                .create-game,
+                .join-game {
+                    margin-bottom: 1.5rem;
+                    padding-bottom: 1.5rem;
+                    border-bottom: 1px solid #eee;
+
+                    &:last-child {
+                        border-bottom: none;
+                    }
+
+                    h3 {
+                        color: #34495e;
+                        margin-top: 0;
+                    }
+
+                    input {
+                        width: 100%;
+                        padding: 0.75rem;
+                        margin-bottom: 1rem;
+                        border: 1px solid #ddd;
+                        border-radius: 5px;
+                        font-size: 1rem;
+                        text-align: center;
+                        text-transform: uppercase;
+                    }
+
+                    .room-code {
+                        margin-top: 1rem;
+                        padding: 1rem;
+                        background-color: #f1f8fe;
+                        border-radius: 5px;
+                        color: #3498db;
+                        font-size: 1.2rem;
+
+                        .copy-btn {
+                            margin-left: 0.5rem;
+                            padding: 0.25rem 0.5rem;
+                            background-color: #3498db;
+                            color: white;
+                            border: none;
+                            border-radius: 3px;
+                            font-size: 0.8rem;
+                            cursor: pointer;
+
+                            &:hover {
+                                background-color: #2980b9;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .status-message {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        border-radius: 5px;
+        text-align: center;
+
+        &.error {
+            background-color: #fdecea;
+            color: #d32f2f;
+        }
+    }
+}

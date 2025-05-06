@@ -1,0 +1,41 @@
+<header class="game-header">
+    <div class="header-container">
+        <div class="logo-container">
+            <a routerLink="/" class="logo">
+                <span class="logo-icon">♞</span>
+                <span class="logo-text">Jeu Fà</span>
+            </a>
+            <div class="game-status" *ngIf="gamePhase">
+                {{ getGameStatus() }}
+            </div>
+        </div>
+
+        <nav class="desktop-nav">
+            <ul>
+                <li *ngFor="let link of navigationLinks">
+                    <a [routerLink]="link.path" routerLinkActive="active">
+                        <i [class]="link.icon"></i>
+                        {{ link.label }}
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="mobile-nav">
+            <button class="menu-toggle" (click)="toggleMenu()">
+                <i class="bi" [class.bi-list]="!isMenuOpen" [class.bi-x]="isMenuOpen"></i>
+            </button>
+
+            <div class="mobile-menu" [class.open]="isMenuOpen">
+                <ul>
+                    <li *ngFor="let link of navigationLinks">
+                        <a [routerLink]="link.path" routerLinkActive="active" (click)="toggleMenu()">
+                            <i [class]="link.icon"></i>
+                            {{ link.label }}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</header>

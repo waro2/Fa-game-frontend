@@ -1,0 +1,49 @@
+<div class="fadu-card" *ngIf="card" [@cardDraw]="{value: '', params: {angle: drawAngle}}" [@cardFlip]="cardState"
+    [class.sacrificed]="isSacrificed">
+
+    <!-- Face arrière de la carte -->
+    <div class="card-back" *ngIf="cardState === 'back'">
+        <img src="cards/travaux_cauris.jpg" alt="Dos de carte Fadu">
+    </div>
+
+    <!-- Face avant de la carte avec contenu dynamique -->
+    <div class="card-front" *ngIf="cardState === 'front' && !isSacrificed">
+        <div class="card-header">
+            <h3>{{ card.name }}</h3>
+            <div class="pfh-value">PFH: {{ card.pfhValue }}</div>
+        </div>
+
+        <img src="'cards/' + card.image" [alt]="card.name" class="card-image">
+
+        <!-- Phase de tirage -->
+        <div class="card-content" *ngIf="gamePhase === 'draw'">
+            <button (click)="onSelectCard()">Sélectionner cette carte</button>
+        </div>
+
+        <!-- Phase de stratégie -->
+        <div class="strategy-selection" *ngIf="gamePhase === 'strategy'">
+            <app-strategy-selector [currentPlayer]="currentPlayer" [playerPFH]="playerPFH"
+                [selectedStrategy]="selectedStrategy" (strategySelected)="onSelectStrategy($event)"
+                (sacrificeRequested)="onSacrificeDecision($event)">
+            </app-strategy-selector>
+        </div>
+
+        <!-- Phase de sacrifice -->
+        <div class="sacrifice-decision" *ngIf="gamePhase === 'sacrifice'">
+            <h4>Voulez-vous faire un sacrifice?</h4>
+            <p>Coût: {{ sacrificeCost }} PFH (Votre solde: {{ playerPFH }} PFH)</p>
+            <div class="sacrifice-options">
+                <button (click)="onSacrificeDecision(true)" [disabled]="!canSacrifice()">Oui</button>
+                <button (click)="onSacrificeDecision(false)">Non</button>
+            </div>
+        </div>
+
+        <!-- Phase de révélation -->
+        <div class="card-reveal" *ngIf="gamePhase === 'reveal'">
+            <p>Carte sélectionnée:</p>
+            <div class="revealed-card">
+                <strong>{{ card.name }}</strong> - {{ card.pfhValue }} PFH
+            </div>
+        </div>
+    </div>
+</div>

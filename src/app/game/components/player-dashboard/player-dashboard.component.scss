@@ -1,0 +1,113 @@
+@use 'sass:color';
+
+.player-dashboard {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 8px;
+    width: 300px;
+    background-color: #f9f9f9;
+    transition: all 0.3s ease;
+
+    &.active {
+        border-color: #3498db;
+        background-color: #e8f4fc;
+        box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+    }
+
+    &.favi1 {
+        border-left: 4px solid #e74c3c;
+    }
+
+    &.favi2 {
+        border-left: 4px solid #2ecc71;
+    }
+
+    .player-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+
+        h2 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.4em;
+        }
+
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: #ecf0f1;
+            color: #7f8c8d;
+            font-size: 0.9em;
+
+            &.active-status {
+                background-color: #2ecc71;
+                color: white;
+            }
+        }
+    }
+
+    .player-stats {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 16px;
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+
+            .stat-label {
+                font-size: 0.9em;
+                color: #7f8c8d;
+            }
+
+            .stat-value {
+                font-weight: bold;
+                font-size: 1.2em;
+                color: #2c3e50;
+            }
+        }
+    }
+
+    .current-action {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #eee;
+
+        .info-item {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+
+            .info-label {
+                font-weight: bold;
+                color: #34495e;
+            }
+
+            .info-value {
+                color: #2c3e50;
+            }
+        }
+    }
+
+    .turn-control {
+        margin-top: 16px;
+        text-align: center;
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+
+            &:hover {
+                background-color: #2980b9;
+            }
+        }
+    }
+}

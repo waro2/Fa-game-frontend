@@ -1,0 +1,115 @@
+@use 'sass:color';
+
+// Déclaration de la variable secondaire si elle n'est pas déjà définie ailleurs
+$secondary-color: #4a6fa5 !default;
+
+.fadu-card {
+    position: relative;
+    width: 180px;
+    height: 250px;
+    perspective: 1000px;
+    margin: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-5px);
+    }
+
+    &.sacrificed {
+        opacity: 0;
+        transform: scale(0.8) rotate(15deg);
+        pointer-events: none;
+    }
+
+    .card-front,
+    .card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transform-style: preserve-3d;
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+        background: white;
+    }
+
+    .card-back {
+        background: linear-gradient(135deg, #4a6fa5, #3a5a8a);
+        border: 3px solid gold;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        img {
+            width: 80%;
+            height: auto;
+            // Ajout d'un fallback pour les images manquantes
+            object-fit: contain;
+        }
+    }
+
+    .card-front {
+        transform: rotateY(180deg);
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 1rem;
+
+            h3 {
+                margin: 0;
+                color: #3a5a8a;
+            }
+
+            .pfh-value {
+                font-weight: bold;
+                color: $secondary-color;
+            }
+        }
+
+        .card-image {
+            width: 100%;
+            max-height: 120px;
+            object-fit: contain;
+            margin-bottom: 1rem;
+        }
+
+        .card-content,
+        .strategy-selection,
+        .sacrifice-decision,
+        .card-reveal {
+            margin-top: auto;
+            text-align: center;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            margin: 0.3rem;
+            border: none;
+            border-radius: 4px;
+            background-color: $secondary-color;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+
+            &:hover {
+                background-color: color.scale($secondary-color, $lightness: -10%);
+            }
+
+            &:disabled {
+                background-color: #cccccc;
+                cursor: not-allowed;
+            }
+        }
+
+        .sacrifice-options {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+    }
+}

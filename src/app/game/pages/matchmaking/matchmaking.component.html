@@ -1,0 +1,56 @@
+<div class="matchmaking-container">
+    <div class="header">
+        <h1>Jeu Fà - Matchmaking</h1>
+        <p>« Trouvez votre adversaire et commencez la bataille stratégique »</p>
+    </div>
+
+    <div class="player-info">
+        <label for="playerName">Votre nom :</label>
+        <input id="playerName" [(ngModel)]="playerName" placeholder="Entrez votre nom" maxlength="15">
+    </div>
+
+    <div class="mode-selection">
+        <div class="mode-tabs">
+            <button [class.active]="selectedMode === 'quick'" (click)="selectedMode = 'quick'">Partie rapide</button>
+            <button [class.active]="selectedMode === 'private'" (click)="selectedMode = 'private'">Salon privé</button>
+        </div>
+
+        <div class="mode-content">
+            <!-- Mode Quick Match -->
+            <div *ngIf="selectedMode === 'quick'" class="quick-match">
+                <p>Affrontez un adversaire aléatoire immédiatement</p>
+                <button (click)="joinQuickMatch()" [disabled]="isLoading">
+                    <span *ngIf="!isLoading">Rechercher un adversaire</span>
+                    <span *ngIf="isLoading">Recherche en cours...</span>
+                </button>
+            </div>
+
+            <!-- Mode Private Game -->
+            <div *ngIf="selectedMode === 'private'" class="private-game">
+                <div class="create-game">
+                    <h3>Créer un salon</h3>
+                    <button (click)="createPrivateGame()" [disabled]="isLoading || roomCode">
+                        <span *ngIf="!roomCode">Créer un salon privé</span>
+                        <span *ngIf="roomCode">Salon créé</span>
+                    </button>
+                    <div *ngIf="roomCode" class="room-code">
+                        Code du salon : <strong>{{ roomCode }}</strong>
+                        <button class="copy-btn" (click)="copyToClipboard(roomCode)">Copier</button>
+                    </div>
+                </div>
+
+                <div class="join-game">
+                    <h3>Rejoindre un salon</h3>
+                    <input [(ngModel)]="roomCode" placeholder="Entrez le code du salon" maxlength="4">
+                    <button (click)="joinPrivateGame()" [disabled]="isLoading || !roomCode">
+                        Rejoindre le salon
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="statusMessage" class="status-message" [class.error]="statusMessage.includes('Veuillez')">
+        {{ statusMessage }}
+    </div>
+</div>

@@ -1,13 +1,80 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
+
 <head>
   <meta charset="utf-8">
-  <title>FaGameFrontend</title>
+  <title>Jeu Fà - Simulation Stratégique</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Meta tags essentiels -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="description" content="Jeu de stratégie Fà - Affrontez votre adversaire dans un duel tactique">
+  <meta name="theme-color" content="#3a5a8a">
+
+  <!-- Favicon et icônes -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <!-- Polices Google -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400;500&display=swap"
+    rel="stylesheet">
+
+  <!-- Icônes -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+  <!-- Préchargement des assets critiques -->
+  <link rel="preload" href="assets/cards/fadu-back.png" as="image">
+  <link rel="preload" href="assets/cards/fadu-standard.png" as="image">
+  <link rel="preload" href="assets/cards/fadu-sacrifice.png" as="image">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400;500&display=swap"
+    rel="stylesheet">
+
+  <!-- Style de base -->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #121212;
+      color: #f0f0f0;
+      font-family: 'Roboto', sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+      background-image: url('assets/background.jpg');
+      background-size: cover;
+      background-attachment: fixed;
+    }
+
+    /* Animation de chargement initial */
+    app-root:empty {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      background: #1a1a2e url('assets/loading.gif') no-repeat center center;
+      background-size: 100px;
+    }
+  </style>
 </head>
-<body>
-  <app-root></app-root>
+
+<body class="mat-typography">
+  <!-- Conteneur principal Angular -->
+  <app-root>
+    <div class="loading-screen">
+      <div class="loading-spinner"></div>
+      <p>Chargement du jeu Fà...</p>
+    </div>
+  </app-root>
+
+  <!-- Scripts de suivi optionnels (analytics) -->
+  <script>
+    // Initialisation PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/ngsw-worker.js');
+      });
+    }
+  </script>
 </body>
+
 </html>

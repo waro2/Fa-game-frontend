@@ -1,0 +1,39 @@
+<div class="player-dashboard" [class.active]="isActive" [class.favi1]="player === 'Favi1'"
+    [class.favi2]="player === 'Favi2'">
+    <div class="player-header">
+        <h2>{{ playerName }}</h2>
+        <div class="status" [class.active-status]="isActive">{{ statusText }}</div>
+    </div>
+
+    <div class="player-stats">
+        <div class="stat">
+            <span class="stat-label">PFH:</span>
+            <span class="stat-value">{{ pfh }}</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Tour:</span>
+            <span class="stat-value">{{ currentTurn }}</span>
+        </div>
+    </div>
+
+    <div class="current-action" *ngIf="gamePhase !== 'draw'">
+        <div class="info-item" *ngIf="currentCard">
+            <span class="info-label">Carte:</span>
+            <span class="info-value">{{ currentCard.name }} ({{ currentCard.pfhValue }} PFH)</span>
+        </div>
+
+        <div class="info-item" *ngIf="currentStrategy">
+            <span class="info-label">Stratégie:</span>
+            <span class="info-value">{{ strategyText }}</span>
+        </div>
+
+        <div class="info-item" *ngIf="hasSacrificed">
+            <span class="info-label">Sacrifice:</span>
+            <span class="info-value">Oui (-14 PFH)</span>
+        </div>
+    </div>
+
+    <div class="turn-control" *ngIf="isActive && gamePhase === 'result'">
+        <button (click)="onEndTurn()">Terminer le tour</button>
+    </div>
+</div>
