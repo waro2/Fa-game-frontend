@@ -15,16 +15,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isMenuOpen = false;
   currentPFH = 0;
   gamePhase = 'menu';
-  private gameSubs: Subscription[] = [];
+  private readonly gameSubs: Subscription[] = [];
 
   navigationLinks = [
     { path: '/', label: 'Accueil', icon: 'bi-house' },
     { path: '/game', label: 'Nouvelle Partie', icon: 'bi-plus-circle' },
-    { path: '/strategies', label: 'Stratégies', icon: 'bi-lightbulb' },
-    { path: '/leaderboard', label: 'Classement', icon: 'bi-trophy' }
+    { path: '/matchmaking', label: 'Matchmaking', icon: 'bi-people' },
+    { path: '/auth/login', label: 'Connexion', icon: 'bi-box-arrow-in-right' },
+    { path: '/auth/register', label: 'Inscription', icon: 'bi-person-plus' }
   ];
 
-  constructor(private gameService: GameService) { }
+  constructor(private readonly gameService: GameService) { }
 
   ngOnInit(): void {
     this.gameSubs.push(

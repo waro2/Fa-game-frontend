@@ -49,7 +49,9 @@ export class FaduCardComponent {
 
   // Méthodes d'animation
   drawCard() {
-    this.drawAngle = Math.random() * 60 - 30; // Angle aléatoire entre -30 et 30 degrés
+    requestAnimationFrame(() => {
+      this.drawAngle = Math.random() * 60 - 30; // Angle aléatoire entre -30 et 30 degrés
+    });
   }
 
   flipCard() {

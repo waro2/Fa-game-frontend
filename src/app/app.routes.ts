@@ -20,20 +20,13 @@ export const routes: Routes = [
   {
     path: 'game',
     component: GameBoardComponent,
-    canActivate: [AuthGuard] // Modifié ici
+    //canActivate: [AuthGuard] // Modifié ici
   },
   {
     path: 'matchmaking',
     component: MatchmakingComponent,
-    canActivate: [AuthGuard] // Modifié ici
-  },
-  {
-    path: 'login',
-    component: LoginComponent
-  },
-  {
-    path: 'register',
-    component: RegisterComponent
+    // canActivate: [AuthGuard] // Modifié ici
+    //
   },
   {
     path: '**',
