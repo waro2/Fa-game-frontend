@@ -1,117 +1,193 @@
-/* ===== Variables & Configuration ===== */
+// Configuration Sass moderne
 @use 'sass:color';
 
-$primary-color: #3a5a8a;
-$secondary-color: #4a6fa5;
-$accent-color: #d4af37;
-$dark-bg: #121212;
-$light-text: #f0f0f0;
-$error-color: #e74c3c;
-$success-color: #2ecc71;
+// Couleurs personnalisées
+$primary-color: #3a5a8a; // Bleu foncé
+$secondary-color: #4a6fa5; // Bleu
+$accent-color: #d4af37; // Or
+$error-color: #e74c3c; // Rouge
+$background-color: #f5f5f5; // Fond clair
+$text-color: #333; // Texte foncé
+$light-text: #fff; // Texte clair
 
-/* ===== Mixins ===== */
-@mixin card-style {
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-  background: linear-gradient(135deg, #2c3e50, #34495e);
-  border: 1px solid rgba($accent-color, 0.3);
-}
-
-@mixin button-style {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* ===== Base Styles ===== */
-body {
-  background-image: url("/assets/background.jpg");
-  background-size: cover;
-  background-attachment: fixed;
-  color: $light-text;
-  font-family: 'Roboto', sans-serif;
-
-  .secondary-element {
-    background-color: color.scale($secondary-color, $lightness: 10%);
-  }
-}
-
-/* ===== Typography ===== */
-h1,
-h2,
-h3,
-h4 {
-  font-family: 'Cinzel', serif;
-  color: $accent-color;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-}
-
-/* ===== Components ===== */
-.btn {
-  @include button-style;
-  background-color: $secondary-color;
-  color: white;
-
-  &:hover {
-    background-color: color.scale($secondary-color, $lightness: 10%);
-    transform: translateY(-2px);
-  }
-
-  &-primary {
-    background-color: $accent-color;
-    color: $dark-bg;
-  }
-
-  &-danger {
-    background-color: $error-color;
-  }
-
-  &:disabled {
-    background-color: #666;
-    cursor: not-allowed;
-  }
-}
-
-/* ===== Layout ===== */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
+// Styles pour la carte de connexion
+.login-card {
+  max-width: 450px;
+  margin: 2rem auto;
   padding: 2rem;
-}
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
 
-/* ===== Game Components ===== */
-.game-board {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  padding: 2rem;
-}
+  // En-tête de la carte
+  mat-card-header {
+    text-align: center;
+    margin-bottom: 2rem;
 
-.player-area {
-  @include card-style;
-  padding: 1.5rem;
-  min-height: 300px;
+    mat-card-title {
+      font-size: 1.8rem;
+      color: $primary-color;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
 
-  &.current-player {
-    border: 2px solid $accent-color;
-    box-shadow: 0 0 15px rgba($accent-color, 0.5);
+    mat-card-subtitle {
+      color: color.mix($text-color, white, 80%);
+      font-style: italic;
+      font-size: 1rem;
+    }
+  }
+
+  // Contenu de la carte
+  mat-card-content {
+    .full-width {
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+
+    // Styles spécifiques pour les champs de formulaire
+    mat-form-field {
+      width: 100%;
+      margin-bottom: 1.5rem;
+
+      // Conteneur principal
+      .mat-form-field-wrapper {
+        padding-bottom: 0; // Réduit l'espace inutile
+      }
+
+      // Label
+      .mat-form-field-label {
+        color: $primary-color;
+        font-weight: 500;
+        transform-origin: left top;
+      }
+
+      // Input
+      .mat-input-element {
+        color: $text-color;
+        caret-color: $primary-color;
+        padding: 12px 0; // Espacement vertical
+        font-size: 1rem;
+      }
+
+      // Bordure
+      .mat-form-field-outline {
+        color: #ddd; // Gris clair pour la bordure
+        background-color: white; // Fond blanc
+        border-radius: 4px;
+      }
+
+      // Bordure au focus
+      .mat-form-field-outline-thick {
+        color: $primary-color;
+        opacity: 1;
+      }
+
+      // Messages d'erreur
+      .mat-error {
+        color: $error-color;
+        font-size: 0.8rem;
+        margin-top: 4px;
+      }
+    }
+
+    // Style spécifique pour l'apparence "outline"
+    .mat-form-field-appearance-outline {
+      .mat-form-field-outline-gap {
+        border-width: 1px;
+      }
+
+      .mat-form-field-outline-start,
+      .mat-form-field-outline-end {
+        border-width: 1px;
+      }
+    }
+
+    // Message d'erreur général
+    .error-message {
+      color: $error-color;
+      margin: 1rem 0;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    // Bouton de soumission
+    button[mat-raised-button] {
+      width: 100%;
+      height: 48px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      background-color: $primary-color;
+      color: $light-text;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+
+      &:hover {
+        background-color: color.adjust($primary-color, $lightness: -10%);
+        transform: translateY(-2px);
+      }
+
+      &:disabled {
+        background-color: #cccccc;
+        color: #666666;
+      }
+
+      // Spinner de chargement
+      mat-spinner {
+        margin: 0 auto;
+
+        circle {
+          stroke: $light-text;
+        }
+      }
+    }
+  }
+
+  // Actions de la carte (liens)
+  mat-card-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+
+    a {
+      color: $primary-color;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s ease;
+
+      &:hover {
+        color: color.adjust($primary-color, $lightness: -10%);
+        text-decoration: underline;
+      }
+    }
+
+    .spacer {
+      flex: 1;
+    }
   }
 }
 
-/* ===== Responsive ===== */
-@media (max-width: 768px) {
-  .game-board {
-    grid-template-columns: 1fr;
-    padding: 1rem;
-  }
+// Styles globaux pour le formulaire
+.mat-form-field-appearance-outline .mat-form-field-outline {
+  background-color: white;
+  border-radius: 5px;
+}
 
-  .container {
-    padding: 1rem;
+// Adaptation pour le dark mode (optionnel)
+@media (prefers-color-scheme: dark) {
+  .login-card {
+    background: #2a2a2a;
+    color: white;
+
+    mat-card-content {
+      .mat-form-field-outline {
+        background-color: #333;
+      }
+
+      .mat-input-element {
+        color: white;
+      }
+    }
   }
 }

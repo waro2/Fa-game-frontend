@@ -6,6 +6,7 @@ import { PlayerDashboardComponent } from '../../components/player-dashboard/play
 import { FaduCard, Strategy } from '../../game.interfaces';
 import { OnInit } from '@angular/core';
 import { Player, GameTurn } from '../../game.interfaces';
+import { AuthService } from '../../../auth/auth.service';
 
 @Component({
   selector: 'app-game-board',
@@ -19,6 +20,10 @@ import { Player, GameTurn } from '../../game.interfaces';
   styleUrls: ['./game-board.component.scss']
 })
 export class GameBoardComponent implements OnInit {
+  // Noms des joueurs
+  player1Name: string = 'Chargement...';
+  player2Name: string = 'Chargement...';
+  currentPlayerName: string = '';
   currentPlayer: 'Favi1' | 'Favi2' = 'Favi1';
   gamePhase: 'draw' | 'strategy' | 'sacrifice' | 'reveal' | 'result' = 'draw';
   currentTurn: number = 1;
@@ -51,7 +56,10 @@ export class GameBoardComponent implements OnInit {
   readonly WINNING_PFH = 280;
   readonly MAX_TURNS = 20;
 
+  constructor(private authService: AuthService) { }
+
   ngOnInit(): void {
+    this.getCurrentUser()
     this.initializeGame();
   }
 
@@ -132,8 +140,8 @@ export class GameBoardComponent implements OnInit {
     const gains = this.calculateGains(
       this.favi1Strategy,
       this.favi2Strategy,
-      this.favi1Card.pfhValue,
-      this.favi2Card.pfhValue
+      this.favi1Card.pfh,
+      this.favi2Card.pfh
     );
 
     this.favi1PFH += gains.favi1Gain;
@@ -263,5 +271,22 @@ export class GameBoardComponent implements OnInit {
 
   restartGame(): void {
     this.initializeGame();
+  }
+  getCurrentUser(): void {
+    // this.isLoadingUser = true;
+    //this.userError = null;
+
+    this.authService.getCurrentUser().subscribe({
+      next: (user: any) => {
+        //this.currentUser = user;
+        this.player1Name = user.username; // Mettez à jour le nom du joueur 1
+        // this.isLoadingUser = false;
+      },
+      error: (err: any) => {
+        //this.userError = 'Erreur lors de la récupération du profil';
+        //this.isLoadingUser = false;
+        console.error('Erreur API:', err);
+      }
+    });
   }
 }

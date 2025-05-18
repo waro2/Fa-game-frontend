@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, throwError, of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
@@ -22,14 +23,19 @@ export class AuthService {
 
   constructor(private http: HttpClient) { }
 
-  // Méthode isAuthenticated complète
+  // Stockage sécurisé des tokens
+  public storeTokens(accessToken: string, refreshToken: string): void {
+    localStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken);
+    localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
+  }
+
+  // Vérification de l'authentification
   isAuthenticated(): boolean {
     const token = this.getAccessToken();
-
-    // Vérifie la présence ET la validité du token
     return !!token && !this.jwtHelper.isTokenExpired(token);
   }
 
+  // Getters pour les tokens
   getAccessToken(): string | null {
     return localStorage.getItem(this.ACCESS_TOKEN_KEY);
   }
@@ -38,26 +44,50 @@ export class AuthService {
     return localStorage.getItem(this.REFRESH_TOKEN_KEY);
   }
 
-  storeTokens(accessToken: string, refreshToken: string): void {
-    localStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken);
-    localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
+  // Login avec gestion d'erreur améliorée
+  login(email: string, password: string): Observable<any> {
+    const body = new URLSearchParams();
+    body.set('username', email);
+    body.set('password', password);
+
+    return this.http.post(
+      `${environment.apiUrl}/auth/login`,
+      body.toString(),
+      {
+        headers: new HttpHeaders({
+          'Content-Type': 'application/x-www-form-urlencoded'
+        })
+      }
+    ).pipe(
+      tap((response: any) => {
+        if (response.accessToken && response.refreshToken) {
+          this.storeTokens(response.accessToken, response.refreshToken);
+        }
+      }),
+      catchError(error => {
+        this.clearTokens();
+        return throwError(() => error);
+      })
+    );
   }
 
-  login(email: string, password: string): Observable<{ accessToken: string, refreshToken: string }> {
-    return this.http.post<{
-      accessToken: string,
-      refreshToken: string
-    }>(`${environment.apiUrl}/auth/login`, { email, password });
-  }
-
-  register(username: string, email: string, password: string): Observable<RegisterResponse> {
+  // Enregistrement avec typage fort
+  register(username: string, email: string, password: string, confirm_password: string): Observable<RegisterResponse> {
     return this.http.post<RegisterResponse>(`${environment.apiUrl}/auth/register`, {
       username,
       email,
-      password
-    });
+      password,
+      confirm_password
+    }).pipe(
+      tap(response => {
+        if (response.accessToken && response.refreshToken) {
+          this.storeUserData(response.accessToken, response.refreshToken, response.userId);
+        }
+      })
+    );
   }
 
+  // Stockage des données utilisateur
   storeUserData(accessToken: string, refreshToken: string, userId: string): void {
     this.storeTokens(accessToken, refreshToken);
     localStorage.setItem(this.USER_ID_KEY, userId);
@@ -67,27 +97,71 @@ export class AuthService {
     return localStorage.getItem(this.USER_ID_KEY);
   }
 
+  // Rafraîchissement du token avec gestion d'erreur
+  refreshToken(): Observable<any> {
+    const refreshToken = this.getRefreshToken();
+
+    if (!refreshToken) {
+      return throwError(() => new Error('No refresh token available'));
+    }
+
+    return this.http.post(`${environment.apiUrl}/api/v1/auth/refresh`,
+      { refresh_token: refreshToken },
+      {
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json'
+        })
+      }
+    ).pipe(
+      tap((response: any) => {
+        if (response.access_token && response.refresh_token) {
+          this.storeTokens(response.access_token, response.refresh_token);
+        }
+      }),
+      catchError(error => {
+        this.clearTokens();
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // Déconnexion
   logout(): void {
-    localStorage.removeItem(this.ACCESS_TOKEN_KEY);
-    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+    this.clearTokens();
     localStorage.removeItem(this.USER_ID_KEY);
   }
 
-  refreshToken(refreshToken?: string): Observable<{ accessToken: string; refreshToken: string }> {
-    const tokenToUse = refreshToken || this.getRefreshToken();
-
-    if (!tokenToUse) {
-      return of(); // Retourne un Observable vide si pas de refresh token disponible
-    }
-
-    return this.http.post<{
-      accessToken: string;
-      refreshToken: string;
-    }>(`${environment.apiUrl}/auth/refresh`, { refreshToken: tokenToUse });
+  // Nettoyage des tokens
+  private clearTokens(): void {
+    localStorage.removeItem(this.ACCESS_TOKEN_KEY);
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
   }
-  // Méthode supplémentaire pour décoder le token
+
+  // Décodage du token
   getDecodedToken(): any {
     const token = this.getAccessToken();
     return token ? this.jwtHelper.decodeToken(token) : null;
+  }
+
+  // Récupération de l'utilisateur courant
+  getCurrentUser(): Observable<any> {
+    const token = this.getAccessToken();
+
+    if (!token) {
+      return throwError(() => new Error('No access token available'));
+    }
+
+    return this.http.get(`${environment.apiUrl}/api/v1/auth/me`, {
+      headers: new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      })
+    }).pipe(
+      catchError(error => {
+        if (error.status === 401) {
+          this.clearTokens();
+        }
+        return throwError(() => error);
+      })
+    );
   }
 }

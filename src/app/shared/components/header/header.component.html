@@ -11,14 +11,22 @@
         </div>
 
         <nav class="desktop-nav">
-            <ul>
-                <li *ngFor="let link of navigationLinks">
-                    <a [routerLink]="link.path" routerLinkActive="active">
-                        <i [class]="link.icon"></i>
-                        {{ link.label }}
-                    </a>
-                </li>
+            <!-- Liste visible si l'utilisateur est connecté -->
+            <ul *ngIf="isAuthenticated(); else notConnected">
+                <li>Tableau de bord</li>
+                <li>Profil</li>
+                <li>Déconnexion</li>
             </ul>
+            <ng-template #notConnected>
+                <ul>
+                    <li *ngFor="let link of navigationLinks">
+                        <a [routerLink]="link.path" routerLinkActive="active">
+                            <i [class]="link.icon"></i>
+                            {{ link.label }}
+                        </a>
+                    </li>
+                </ul>
+            </ng-template>
         </nav>
 
         <div class="mobile-nav">

@@ -43,8 +43,8 @@ export class RegisterComponent {
       Validators.minLength(8), // Changé de 6 à 8
       Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/) // Renforcé
     ]),
-    confirmPassword: new FormControl('', [Validators.required])
-  }, { validators: passwordMatchValidator('password', 'confirmPassword') }); // Modifié
+    confirm_password: new FormControl('', [Validators.required])
+  }, { validators: passwordMatchValidator('password', 'confirm_password') }); // Modifié
 
   isLoading = false;
   errorMessage = '';
@@ -62,9 +62,9 @@ export class RegisterComponent {
     this.errorMessage = '';
     this.successMessage = '';
 
-    const { username, email, password } = this.registerForm.value;
+    const { username, email, password, confirm_password } = this.registerForm.value;
 
-    this.authService.register(username!, email!, password!).subscribe({
+    this.authService.register(username!, email!, password!, confirm_password!).subscribe({
       next: (response) => {
         // Stockage des tokens et de l'ID utilisateur
         this.authService.storeUserData(

@@ -1,26 +1,26 @@
-<div class="fadu-card" *ngIf="card" [@cardDraw]="{value: '', params: {angle: drawAngle}}" [@cardFlip]="cardState"
-    [class.sacrificed]="isSacrificed">
+<div class="fadu-card" [@cardDraw]="{value: '', params: {angle: drawAngle}}" [@cardFlip]="cardState"
+    [class.sacrificed]="isSacrificed" [@sacrificeAnimation]="isSacrificed ? 'void' : '*'">
 
-    <!-- Face arrière de la carte -->
+    <!-- Card Back -->
     <div class="card-back" *ngIf="cardState === 'back'">
-        <img src="cards/travaux_cauris.jpg" alt="Dos de carte Fadu">
+        <img [src]="faduService.getCardBackImage()" alt="Card Back">
     </div>
 
-    <!-- Face avant de la carte avec contenu dynamique -->
+    <!-- Card Front -->
     <div class="card-front" *ngIf="cardState === 'front' && !isSacrificed">
         <div class="card-header">
-            <h3>{{ card.name }}</h3>
-            <div class="pfh-value">PFH: {{ card.pfhValue }}</div>
+            <h3>{{ card?.name | titlecase }}</h3>
+            <div class="pfh-value">PFH: {{ card?.pfh }}</div>
         </div>
 
-        <img src="'cards/' + card.image" [alt]="card.name" class="card-image">
+        <img [src]="cardImagePath" [alt]="card?.name" class="card-image">
 
-        <!-- Phase de tirage -->
+        <!-- Draw Phase -->
         <div class="card-content" *ngIf="gamePhase === 'draw'">
-            <button (click)="onSelectCard()">Sélectionner cette carte</button>
+            <button (click)="onSelectCard()">Select Card</button>
         </div>
 
-        <!-- Phase de stratégie -->
+        <!-- Strategy Phase -->
         <div class="strategy-selection" *ngIf="gamePhase === 'strategy'">
             <app-strategy-selector [currentPlayer]="currentPlayer" [playerPFH]="playerPFH"
                 [selectedStrategy]="selectedStrategy" (strategySelected)="onSelectStrategy($event)"
@@ -28,21 +28,21 @@
             </app-strategy-selector>
         </div>
 
-        <!-- Phase de sacrifice -->
+        <!-- Sacrifice Phase -->
         <div class="sacrifice-decision" *ngIf="gamePhase === 'sacrifice'">
-            <h4>Voulez-vous faire un sacrifice?</h4>
-            <p>Coût: {{ sacrificeCost }} PFH (Votre solde: {{ playerPFH }} PFH)</p>
+            <h4>Perform Sacrifice?</h4>
+            <p>Cost: {{ faduService.getSacrificeCost() }} PFH (Your PFH: {{ playerPFH }})</p>
             <div class="sacrifice-options">
-                <button (click)="onSacrificeDecision(true)" [disabled]="!canSacrifice()">Oui</button>
-                <button (click)="onSacrificeDecision(false)">Non</button>
+                <button (click)="onSacrificeDecision(true)" [disabled]="!canSacrifice()">Yes</button>
+                <button (click)="onSacrificeDecision(false)">No</button>
             </div>
         </div>
 
-        <!-- Phase de révélation -->
+        <!-- Reveal Phase -->
         <div class="card-reveal" *ngIf="gamePhase === 'reveal'">
-            <p>Carte sélectionnée:</p>
+            <p>Selected Card:</p>
             <div class="revealed-card">
-                <strong>{{ card.name }}</strong> - {{ card.pfhValue }} PFH
+                <strong>{{ card?.name | titlecase }}</strong> - {{ card?.pfh }} PFH
             </div>
         </div>
     </div>

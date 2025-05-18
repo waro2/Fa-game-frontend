@@ -13,8 +13,10 @@ export type Strategy = 'V' | 'C' | 'G';
   styleUrls: ['./player-dashboard.component.scss']
 })
 export class PlayerDashboardComponent {
+  // Inputs combinés des deux versions
   @Input() player: Player = 'Favi1';
-  @Input() pfh: number = 140; // Valeur initiale selon les règles du jeu
+  @Input() playerName: string = 'Joueur';
+  @Input() pfh: number = 140;
   @Input() currentTurn: number = 1;
   @Input() isActive: boolean = false;
   @Input() currentStrategy: Strategy | null = null;
@@ -24,8 +26,9 @@ export class PlayerDashboardComponent {
 
   @Output() endTurn = new EventEmitter<void>();
 
-  get playerName(): string {
-    return this.player === 'Favi1' ? 'Favi 1' : 'Favi 2';
+  // Méthode pour obtenir le nom affiché
+  get displayName(): string {
+    return this.playerName || (this.player === 'Favi1' ? 'Favi 1' : 'Favi 2');
   }
 
   get statusText(): string {

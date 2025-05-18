@@ -1,10 +1,18 @@
 export interface FaduCard {
-    id: number;
+    id: string;
     name: string;
-    pfhValue: number;
+    pfh: number;
     isSacrifice: boolean;
     image: string;
     type: 'standard' | 'sacrifice';
+}
+export interface SacrificeResult {
+    success: boolean;
+    card?: FaduCard;
+    new_pfh: number;
+    previous_pfh: number;
+    pfh_change: number;
+    message: string;
 }
 
 export type Player = 'Favi1' | 'Favi2';

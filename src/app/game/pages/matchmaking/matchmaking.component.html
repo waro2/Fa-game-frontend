@@ -19,10 +19,37 @@
             <!-- Mode Quick Match -->
             <div *ngIf="selectedMode === 'quick'" class="quick-match">
                 <p>Affrontez un adversaire aléatoire immédiatement</p>
-                <button (click)="joinQuickMatch()" [disabled]="isLoading">
-                    <span *ngIf="!isLoading">Rechercher un adversaire</span>
-                    <span *ngIf="isLoading">Recherche en cours...</span>
+
+                <button (click)="isInQueue ? cancelMatchmaking() : joinQuickMatch()"
+                    [disabled]="isLoading && !isInQueue" [class.cancel-btn]="isInQueue">
+                    <span *ngIf="!isInQueue && !isLoading">Rechercher un adversaire</span>
+                    <span *ngIf="isLoading && !isInQueue">Préparation...</span>
+                    <span *ngIf="isInQueue">Annuler la recherche</span>
                 </button>
+
+                <div *ngIf="isInQueue" class="queue-info">
+                    <div class="search-animation">
+                        <div class="pulse-dot"></div>
+                        <div class="pulse-dot"></div>
+                        <div class="pulse-dot"></div>
+                    </div>
+
+                    <div *ngIf="queuePosition" class="queue-position">
+                        Position dans la file : <strong>{{ queuePosition }}</strong>
+                    </div>
+
+                    <!-- <div class="time-info">
+                        Temps d'attente : {{ timeInQueue | timeFormat }}
+                        <span *ngIf="estimatedWaitTime">
+                            (estimé : {{ estimatedWaitTime }}s)
+                        </span>
+                    </div> -->
+
+                    <div class="players-waiting">
+                        <span class="players-count">{{ queuePosition || 'Plusieurs' }}</span>
+                        joueurs en attente
+                    </div>
+                </div>
             </div>
 
             <!-- Mode Private Game -->

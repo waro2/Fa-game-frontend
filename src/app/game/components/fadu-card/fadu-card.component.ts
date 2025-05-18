@@ -1,12 +1,10 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FaduCard, Strategy, StrategySelection, Player } from '../../game.interfaces'; // Vérifiez le chemin
+import { FaduCard, Player, StrategySelection } from '../../game.interfaces';
 import { StrategySelectorComponent } from '../strategy-selector/strategy-selector.component';
-import {
-  cardFlipTrigger,
-  cardDrawTrigger,
-  sacrificeDeckTrigger
-} from '../../../../assets/animations/card-flip.animation';
+import { FaduService } from '../../fadu.service'; // Chemin corrigé
+import { animate, state, style, transition, trigger } from '@angular/animations';
+
 @Component({
   selector: 'app-fadu-card',
   standalone: true,
@@ -14,97 +12,143 @@ import {
   templateUrl: './fadu-card.component.html',
   styleUrls: ['./fadu-card.component.scss'],
   animations: [
-    cardFlipTrigger,
-    cardDrawTrigger,
-    sacrificeDeckTrigger
+    trigger('cardFlip', [
+      state('front', style({ transform: 'rotateY(0deg)' })),
+      state('back', style({ transform: 'rotateY(180deg)' })),
+      transition('front <=> back', animate('500ms ease-out'))
+    ]),
+    trigger('cardDraw', [
+      transition(':enter', [
+        style({ transform: 'translateY(-100px)', opacity: 0 }),
+        animate('300ms ease-out', style({ transform: 'translateY(0)', opacity: 1 }))
+      ])
+    ]),
+    trigger('sacrificeAnimation', [
+      transition(':leave', [
+        animate('500ms ease-in', style({
+          transform: 'scale(1.2) rotate(30deg)',
+          opacity: 0
+        }))
+      ])
+    ])
   ]
 })
 export class FaduCardComponent {
   @Input() card: FaduCard | null = null;
   @Input() currentPlayer!: Player;
-  @Input() playerPFH!: number;
-  @Input() gamePhase!: string;
+  @Input() playerPFH = 0;
+  @Input() gamePhase: 'draw' | 'strategy' | 'sacrifice' | 'reveal' = 'draw';
   @Input() isSacrificeDeck = false;
   @Input() cardType: 'standard' | 'sacrifice' = 'standard';
-  @Input() isFlipped = false;
 
   @Output() cardSelected = new EventEmitter<FaduCard>();
   @Output() strategySelected = new EventEmitter<StrategySelection>();
   @Output() sacrificeDecision = new EventEmitter<boolean>();
 
-  // États d'animation
+  // Animation states
   cardState: 'front' | 'back' = 'back';
   drawAngle = 0;
   isSacrificed = false;
+  cardImagePath = '';
 
-  // Stratégies disponibles
-  strategies: { value: 'V' | 'C' | 'G', label: string }[] = [
-    { value: 'V', label: 'Soumission (V)' },
-    { value: 'C', label: 'Coopération (C)' },
-    { value: 'G', label: 'Guerre (G)' }
+  // Game strategies
+  readonly strategies = [
+    { value: 'V' as const, label: 'Soumission (V)' },
+    { value: 'C' as const, label: 'Coopération (C)' },
+    { value: 'G' as const, label: 'Guerre (G)' }
   ];
 
   selectedStrategy: 'V' | 'C' | 'G' | null = null;
-  sacrificeCost: number = 14;
 
-  // Méthodes d'animation
-  drawCard() {
-    requestAnimationFrame(() => {
-      this.drawAngle = Math.random() * 60 - 30; // Angle aléatoire entre -30 et 30 degrés
+  constructor(public faduService: FaduService) { } // Service en public
+
+  // Draw a new card
+  drawNewCard(): void {
+    this.faduService.drawCard(this.cardType).subscribe({
+      next: (card: FaduCard) => {
+        this.card = card;
+        this.cardImagePath = this.faduService.getCardImage(card);
+        this.drawCard();
+      },
+      error: (err: any) => console.error('Failed to draw card:', err)
     });
   }
 
-  flipCard() {
+  // Handle sacrifice
+  handleSacrifice(): void {
+    if (!this.canSacrifice()) return;
+
+    this.faduService.performSacrifice(this.playerPFH).subscribe({
+      next: (result) => {
+        if (result.success && result.card) {
+          this.card = result.card;
+          this.cardImagePath = this.faduService.getCardImage(result.card);
+          this.playerPFH = result.newPfh;
+          this.performSacrificeAnimation();
+        }
+      },
+      error: (err: any) => console.error('Sacrifice failed:', err)
+    });
+  }
+
+  // Animation methods
+  drawCard(): void {
+    requestAnimationFrame(() => {
+      this.drawAngle = Math.random() * 60 - 30; // Angle aléatoire
+      this.cardState = 'front';
+    });
+  }
+
+  flipCard(): void {
     this.cardState = this.cardState === 'front' ? 'back' : 'front';
   }
 
-  performSacrificeAnimation() {
+  performSacrificeAnimation(): void {
     this.isSacrificed = true;
+    setTimeout(() => this.isSacrificed = false, 500);
   }
 
-  // Méthodes existantes avec intégration des animations
+  // Game actions
   onSelectCard(): void {
     if (this.card) {
-      this.drawCard(); // Lance l'animation de tirage
+      this.drawCard(); // Animation avant émission
       this.cardSelected.emit(this.card);
     }
   }
 
-  onSelectStrategy(strategy: Strategy): void {
+  onSelectStrategy(strategy: 'V' | 'C' | 'G'): void {
     this.selectedStrategy = strategy;
     this.strategySelected.emit({
       player: this.currentPlayer,
       strategy,
       sacrifice: false
     });
-    this.flipCard(); // Retourne la carte après sélection
+    this.flipCard(); // Animation après sélection
   }
 
   onSacrificeDecision(decision: boolean): void {
     this.sacrificeDecision.emit(decision);
     if (decision) {
-      this.performSacrificeAnimation(); // Lance l'animation de sacrifice
+      this.performSacrificeAnimation();
       this.strategySelected.emit({
         player: this.currentPlayer,
-        strategy: this.selectedStrategy || 'C',
+        strategy: this.selectedStrategy || 'C', // Valeur par défaut
         sacrifice: true
       });
     }
   }
 
-
   canSacrifice(): boolean {
-    return this.playerPFH >= this.sacrificeCost;
+    return this.playerPFH >= this.faduService.getSacrificeCost();
+
   }
 
-
-
   getStrategyDescription(strategy: 'V' | 'C' | 'G'): string {
-    switch (strategy) {
-      case 'V': return 'Soumission: Accepte de perdre des points pour éviter le conflit';
-      case 'C': return 'Coopération: Cherche un bénéfice mutuel';
-      case 'G': return 'Guerre: Cherche à maximiser son gain au détriment de l\'autre';
-      default: return '';
-    }
+    const descriptions = {
+      'V': 'Soumission: Accepte de perdre des points pour éviter le conflit',
+      'C': 'Coopération: Cherche un bénéfice mutuel',
+      'G': 'Guerre: Cherche à maximiser son gain au détriment de l\'autre'
+    };
+    return descriptions[strategy] || '';
   }
 }

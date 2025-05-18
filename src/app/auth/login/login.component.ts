@@ -8,6 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { JwtHelperService } from '@auth0/angular-jwt';
 
 
 @Component({
@@ -33,6 +34,11 @@ export class LoginComponent {
   loginForm: FormGroup;
   isLoading = false;
   errorMessage = '';
+  loginResponse: any;
+  private readonly ACCESS_TOKEN_KEY = 'fà_access_token';
+  private readonly REFRESH_TOKEN_KEY = 'fà_refresh_token';
+  private readonly USER_ID_KEY = 'fà_user_id';
+  private jwtHelper = new JwtHelperService();
 
   constructor(
     private fb: FormBuilder,
@@ -43,6 +49,20 @@ export class LoginComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
+  }
+
+  isAuthenticated(): boolean {
+    const token = this.getAccessToken();
+    return !!token && !this.jwtHelper.isTokenExpired(token);
+  }
+
+  // Getters pour les tokens
+  getAccessToken(): string | null {
+    return localStorage.getItem(this.ACCESS_TOKEN_KEY);
+  }
+
+  getRefreshToken(): string | null {
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
   }
 
   onSubmit() {

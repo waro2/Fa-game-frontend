@@ -1,4 +1,4 @@
-@use 'sass:color';
+@use '@angular/material' as mat;
 
 .login-card {
     max-width: 450px;
@@ -8,8 +8,6 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     border-radius: 12px;
 
-
-
     mat-card-header {
         justify-content: center;
         text-align: center;
@@ -17,77 +15,156 @@
 
         mat-card-title {
             font-size: 1.8rem;
-            color: #3f51b5; // Couleur primary
+            color: #3f51b5;
             font-weight: bold;
         }
 
         mat-card-subtitle {
             font-style: italic;
-            color: rgba(0, 0, 0, 0.54);
+            color: rgba(0, 0, 0, 0.7);
         }
     }
 
-    .full-width {
-        width: 100%;
-        margin-bottom: 1rem;
-    }
+    mat-card-content {
+        form {
+            display: block;
+            width: 100%;
+        }
 
-    .error-message {
-        color: #f44336; // Couleur warn
-        margin: 1rem 0;
-        text-align: center;
+        mat-form-field {
+            width: 100%;
+            margin-bottom: 1.5rem;
+            display: block;
+
+            // Amélioration de la visibilité du conteneur
+            .mat-form-field-wrapper {
+                padding-bottom: 0;
+                width: 100%;
+            }
+
+            // Label plus visible
+            .mat-form-field-label {
+                color: #3f51b5;
+                font-weight: 600; // Plus gras
+                font-size: 0.95rem; // Légèrement plus grand
+                transform-origin: left; // Meilleure animation
+            }
+
+            // Input plus visible
+            .mat-input-element {
+                color: #222; // Plus contrasté
+                caret-color: #3f51b5;
+                padding: 12px 0;
+                font-size: 1.05rem; // Légèrement plus grand
+                height: 1.2em; // Meilleure hauteur
+                line-height: 1.2; // Meilleur espacement
+            }
+
+            // Bordure plus visible
+            .mat-form-field-outline {
+                color: rgba(63, 81, 181, 0.3); // Teinté bleu
+                background-color: white;
+                border-radius: 4px; // Coins arrondis
+            }
+
+            // Bordure au focus plus visible
+            .mat-form-field-outline-thick {
+                color: #3f51b5;
+                opacity: 0.8;
+                border-width: 2px;
+            }
+
+            // Animation et état focus améliorés
+            &.mat-focused {
+                .mat-form-field-label {
+                    color: #3f51b5;
+                }
+            }
+
+            // Placeholder plus visible
+            .mat-form-field-placeholder {
+                opacity: 0.8;
+            }
+
+            // Ajout d'un effet hover
+            &:hover {
+                .mat-form-field-outline {
+                    color: rgba(63, 81, 181, 0.5);
+                }
+            }
+        }
+
+        // Amélioration des messages d'erreur
+        .error-message {
+            color: #f44336;
+            margin: 1rem 0;
+            text-align: center;
+            font-weight: 500;
+            display: block;
+            padding: 8px;
+            background-color: rgba(244, 67, 54, 0.08);
+            border-radius: 4px;
+        }
+    }
+}
+
+mat-card-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+
+    a {
+        color: #3f51b5;
+        text-decoration: none;
         font-weight: 500;
+        font-size: 0.95rem;
+        padding: 8px 0;
+    }
+}
+
+button[mat-raised-button] {
+    height: 48px;
+    font-size: 1.1rem;
+    margin-top: 1rem;
+    background-color: #3f51b5;
+    color: white;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background-color: #303f9f;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
-    mat-card-actions {
-        display: flex;
-        justify-content: space-between;
-        padding: 1rem 0 0;
+    &:active {
+        transform: translateY(0);
+    }
 
-        .spacer {
-            flex: 1;
+    &:disabled {
+        background-color: rgba(0, 0, 0, 0.12);
+        color: rgba(0, 0, 0, 0.38);
+    }
+}
+
+// Ajout pour améliorer la visibilité sur mobile
+@media (max-width: 600px) {
+    .login-card {
+        margin: 1rem;
+        padding: 1.5rem;
+
+        mat-card-header {
+            margin-bottom: 1.5rem;
+        }
+
+        mat-form-field {
+            margin-bottom: 1.25rem;
+
+            .mat-input-element {
+                font-size: 1rem;
+            }
         }
     }
-
-    button[mat-raised-button] {
-        height: 48px;
-        font-size: 1.1rem;
-        margin-top: 1rem;
-    }
-
-
-}
-
-.login-card {
-    max-width: 400px;
-    margin: 2rem auto;
-    padding: 2rem;
-
-    .full-width {
-        width: 100%;
-        margin-bottom: 1rem;
-    }
-
-    .error-message {
-        color: #f44336;
-        margin: 1rem 0;
-    }
-
-    .spacer {
-        flex: 1 1 auto;
-    }
-
-    mat-spinner {
-        margin: 0 auto;
-    }
-}
-
-input,
-mat-error {
-    color: gray !important;
-}
-
-mat-form-field input {
-    color: gray !important;
-
 }

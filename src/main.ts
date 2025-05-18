@@ -67,14 +67,16 @@ async function initializeApp() {
     // Étape 2: Récupération du service après bootstrap
     const assetLoader = appRef.injector.get(AssetLoaderService);
     await assetLoader.preloadAssets([
-      'assets/cards/travaux_cauris.jpg',
-      'assets/cards/travaux_cauris2.jpg',
-      'assets/cards/travaux_cauris3.jpg',
-      'assets/cards/travaux_cauris4.jpg',
-      'assets/cards/travaux_cauris5.jpg',
-      'assets/cards/travaux_cauris6.jpg',
-      'assets/cards/travaux_cauris7.jpg',
-      'assets/cards/travaux_cauris8.jpg',
+      'assets/cards/standard/gbe_medji.jpg',
+      'assets/cards/standard/gbe_abla.jpg',
+      'assets/cards/standard/gbe_aklan.jpg',
+      'assets/cards/standard/gbe_di.jpg',
+      'assets/cards/standard/gbe_loso.jpg',
+      'assets/cards/standard/gbe_wlin.jpg',
+      'assets/cards/standard/gbe_woli.jpg',
+      'assets/cards/standard/gbe_yeku.jpg',
+
+
 
     ]);
 
