@@ -1,10 +1,19 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { GameService } from '../../game.service';
 import { FormsModule } from '@angular/forms';
-import { interval, Subscription, takeWhile } from 'rxjs';
-// import { TimeFormatPipe } from '../../../shared/pipes/time-format.pipe'; // Ajout de l'import
+import { Router } from '@angular/router';
+import { Subscription, interval } from 'rxjs';
+import { takeWhile } from 'rxjs/operators';
+
+import { AuthService } from '../../../auth/auth.service';
+import { GameService } from '../../../game/game.service';
+import { UserProfile } from '../../../shared/models/user.model';
+
+interface QueueStatusResponse {
+  position: number;
+  totalPlayers: number;
+  avgWaitTime: number;
+}
 
 @Component({
   selector: 'app-matchmaking',
@@ -13,246 +22,350 @@ import { interval, Subscription, takeWhile } from 'rxjs';
   templateUrl: './matchmaking.component.html',
   styleUrls: ['./matchmaking.component.scss']
 })
-export class MatchmakingComponent implements OnDestroy {
+export class MatchmakingComponent implements OnInit, OnDestroy {
+  // Propriétés utilisateur
+  currentUser: UserProfile | null = null;
   playerName: string = '';
-  selectedMode: 'quick' | 'private' = 'quick';
-  roomCode: string = '';
+
+  // Propriétés de l'interface
   isLoading: boolean = false;
-  statusMessage: string = '';
+  error: string | null = null;
+  statusMessage: string | null = null;
+  selectedMode: 'quick' | 'private' = 'quick';
+
+  // Propriétés du matchmaking rapide
+  isInQueue: boolean = false;
   queuePosition: number | null = null;
   estimatedWaitTime: number | null = null;
   timeInQueue: number = 0;
-  isInQueue: boolean = false;
-  showAnimation: boolean = false;
-  animationStates: string[] = [];
-  private matchmakingSub!: Subscription;
-  private queueTimerSub!: Subscription;
-  private animationInterval!: any;
-  private readonly MAX_WAIT_TIME = 120; // 2 minutes en secondes
-  private readonly QUEUE_POLL_INTERVAL = 3000;
+  queueInterval: any;
+  queueStatusInterval: any;
 
+  // Propriétés du salon privé
+  roomCode: string = '';
+
+  // Propriétés du match trouvé
+  isMatchFound: boolean = false;
+  selectedOpponent: any | null = null;
+  matchCountdown: number = 10;
+  matchTimer: any;
+
+  // Gestion des souscriptions
+  private subscriptions: Subscription[] = [];
 
   constructor(
+    private authService: AuthService,
     private gameService: GameService,
     private router: Router
   ) { }
 
-  joinQuickMatch(): void {
-    if (!this.validatePlayerName()) return;
+  ngOnInit(): void {
+    this.loadCurrentUser();
 
+    // S'abonner au nom du joueur dans le service
+    this.subscriptions.push(
+      this.gameService.playerName$.subscribe(name => {
+        this.playerName = name;
+      }),
+
+      this.gameService.roomCode$.subscribe(code => {
+        if (code) {
+          this.roomCode = code;
+        }
+      }),
+
+      this.gameService.gameStatus$.subscribe(status => {
+        if (status === 'ready') {
+          this.handleMatchFound();
+        }
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    // Nettoyer les intervalles
+    this.clearAllTimers();
+
+    // Désabonner de toutes les souscriptions
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+
+    // Si on est en recherche de match, annuler
+    if (this.isInQueue) {
+      this.cancelMatchmaking();
+    }
+  }
+
+  loadCurrentUser(): void {
     this.isLoading = true;
-    this.isInQueue = true;
-    this.timeInQueue = 0;
-    this.showAnimation = true;
-    this.startAnimation();
-    this.statusMessage = 'Recherche d\'un adversaire...';
 
+    this.authService.getCurrentUser().subscribe({
+      next: (user) => {
+        this.currentUser = user;
+        // Définir le nom du joueur dans le service
+        this.gameService.setPlayerName(user.username || '');
+        this.playerName = user.username || '';
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement du profil:', error);
+        this.error = "Impossible de charger votre profil. Veuillez vous reconnecter.";
+        this.isLoading = false;
+      }
+    });
+  }
+
+  // Méthodes pour le mode Partie Rapide
+  joinQuickMatch(): void {
+    if (!this.playerName.trim()) {
+      this.statusMessage = "Veuillez entrer votre nom avant de rechercher un adversaire.";
+      return;
+    }
+
+    this.statusMessage = null;
+    this.isLoading = true;
     this.gameService.setPlayerName(this.playerName);
     this.gameService.setGameMode('quick');
 
-    // Démarrer le timer d'attente
-    this.startQueueTimer();
-
-    // Premier appel immédiat
-    this.checkMatchmakingStatus();
-
-    // Configurer le polling régulier
-    this.matchmakingSub = interval(this.QUEUE_POLL_INTERVAL).subscribe(() => {
-      this.checkMatchmakingStatus();
-    });
-
-    // Simuler des données de file d'attente (à remplacer par un vrai appel API)
-    this.simulateQueuePosition();
-  }
-
-  private checkMatchmakingStatus(): void {
     this.gameService.joinMatchmaking().subscribe({
       next: (response) => {
+        this.isLoading = false;
+
         if ('opponent' in response) {
-          this.handleMatchFound(response.opponent, response.game_id);
+          // Match trouvé immédiatement
+          this.selectedOpponent = { username: response.opponent };
+          this.handleMatchFound();
         } else {
-          this.updateQueueInfo();
+          // En file d'attente
+          this.isInQueue = true;
+          this.startQueueTimer();
+          this.pollQueueStatus();
         }
       },
-      error: (err) => {
-        console.error('Erreur lors du matchmaking:', err);
-        this.handleMatchmakingError();
+      error: (error) => {
+        console.error('Erreur lors de la recherche de partie:', error);
+        this.isLoading = false;
+        this.statusMessage = "Erreur lors de la recherche d'un adversaire. Veuillez réessayer.";
       }
     });
-  }
-
-  private updateQueueInfo(): void {
-    // En production, vous pourriez obtenir ces infos depuis l'API
-    if (this.timeInQueue > 30 && this.queuePosition && this.queuePosition > 1) {
-      this.estimatedWaitTime = Math.floor(this.queuePosition * 0.5); // Estimation arbitraire
-    }
-  }
-
-  private simulateQueuePosition(): void {
-    // Simule une position dans la file qui diminue avec le temps
-    setTimeout(() => {
-      this.queuePosition = Math.floor(Math.random() * 10) + 1;
-
-      const decreaseInterval = setInterval(() => {
-        if (this.queuePosition && this.queuePosition > 0) {
-          this.queuePosition -= 1;
-        } else {
-          clearInterval(decreaseInterval);
-        }
-      }, 5000);
-    }, 2000);
   }
 
   cancelMatchmaking(): void {
-    this.isLoading = false;
-    this.isInQueue = false;
-    this.showAnimation = false;
-    this.queuePosition = null;
-    this.estimatedWaitTime = null;
-    this.timeInQueue = 0;
+    this.isLoading = true;
 
-    if (this.matchmakingSub) {
-      this.matchmakingSub.unsubscribe();
-    }
-
-    if (this.queueTimerSub) {
-      this.queueTimerSub.unsubscribe();
-    }
-
-    clearInterval(this.animationInterval);
-    this.statusMessage = 'Recherche annulée';
-
-    // Appeler l'API pour annuler le matchmaking
-    this.gameService.cancelMatchmaking().subscribe();
-  }
-
-  private startQueueTimer(): void {
-    this.queueTimerSub = interval(1000).subscribe(() => {
-      this.timeInQueue++;
-
-      // Timeout après le temps maximum d'attente
-      if (this.timeInQueue >= this.MAX_WAIT_TIME) {
-        this.statusMessage = 'Délai d\'attente dépassé. Veuillez réessayer.';
-        this.cancelMatchmaking();
+    this.gameService.cancelMatchmaking().subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.resetQueueState();
+      },
+      error: (error) => {
+        console.error('Erreur lors de l\'annulation de la recherche:', error);
+        this.isLoading = false;
+        this.resetQueueState();
       }
     });
   }
 
-  private startAnimation(): void {
-    this.animationStates = ['searching', 'searching.', 'searching..', 'searching...'];
-    let index = 0;
+  startQueueTimer(): void {
+    this.timeInQueue = 0;
+    this.queueInterval = setInterval(() => {
+      this.timeInQueue++;
+    }, 1000);
+  }
 
-    this.animationInterval = setInterval(() => {
-      index = (index + 1) % this.animationStates.length;
-      if (this.isInQueue) {
-        this.statusMessage = this.animationStates[index];
+  pollQueueStatus(): void {
+    this.queueStatusInterval = setInterval(() => {
+      this.gameService.getQueueStatus().subscribe({
+        next: (status) => {
+          this.queuePosition = status.position;
+          this.estimatedWaitTime = status.avgWaitTime;
+
+          // Si position est 1, on peut être le prochain à être matchmake
+          if (status.position === 1) {
+            // Augmenter la fréquence de polling
+            clearInterval(this.queueStatusInterval);
+            this.queueStatusInterval = setInterval(() => {
+              this.checkForMatch();
+            }, 1000);
+          }
+        },
+        error: (error) => {
+          console.error('Erreur lors de la récupération de la position dans la file:', error);
+        }
+      });
+    }, 5000); // Polling toutes les 5 secondes
+  }
+
+  checkForMatch(): void {
+    // Vérifie si un match a été trouvé (dans un vrai système, vous auriez un endpoint API pour ça)
+    this.gameService.currentGame$.subscribe({
+      next: (game) => {
+        if (game && game.status === 'ready' && game.players.length > 1) {
+          this.resetQueueState();
+          this.handleMatchFound();
+        }
       }
-    }, 500);
+    });
   }
 
-  private handleMatchFound(opponent: string, gameId: string): void {
-    this.cleanupQueue();
-    this.statusMessage = `Adversaire trouvé : ${opponent}`;
-    this.gameService.setGamePhase('playing');
-    this.router.navigate(['/game']);
-  }
-
-  private handleMatchmakingError(): void {
-    this.cleanupQueue();
-    this.statusMessage = 'Erreur lors de la recherche d\'adversaire';
-  }
-
-  private cleanupQueue(): void {
-    this.isLoading = false;
+  resetQueueState(): void {
     this.isInQueue = false;
-    this.showAnimation = false;
-    clearInterval(this.animationInterval);
-
-    if (this.matchmakingSub) {
-      this.matchmakingSub.unsubscribe();
-    }
-
-    if (this.queueTimerSub) {
-      this.queueTimerSub.unsubscribe();
-    }
+    this.queuePosition = null;
+    this.estimatedWaitTime = null;
+    clearInterval(this.queueInterval);
+    clearInterval(this.queueStatusInterval);
   }
 
+  // Méthodes pour le mode Salon Privé
   createPrivateGame(): void {
-    if (!this.validatePlayerName()) return;
+    if (!this.playerName.trim()) {
+      this.statusMessage = "Veuillez entrer votre nom avant de créer un salon.";
+      return;
+    }
 
+    this.statusMessage = null;
     this.isLoading = true;
-    this.statusMessage = 'Création du salon privé...';
-
     this.gameService.setPlayerName(this.playerName);
     this.gameService.setGameMode('private');
 
     this.gameService.createPrivateGame().subscribe({
       next: (response) => {
+        this.isLoading = false;
         this.roomCode = response.roomCode;
-        this.gameService.setRoomCode(response.roomCode);
-        this.statusMessage = `Salon créé - Code : ${response.roomCode}`;
-        this.isLoading = false;
+        this.statusMessage = "Salon créé ! Partagez le code avec votre adversaire.";
+
+        // Vérifier périodiquement si quelqu'un a rejoint la partie
+        const checkJoinInterval = setInterval(() => {
+          this.gameService.currentGame$.subscribe({
+            next: (game) => {
+              if (game && game.players.length > 1) {
+                clearInterval(checkJoinInterval);
+                this.handleMatchFound();
+              }
+            }
+          });
+        }, 2000);
       },
-      error: (err) => {
-        console.error('Erreur lors de la création du salon:', err);
-        this.statusMessage = 'Erreur lors de la création du salon';
+      error: (error) => {
+        console.error('Erreur lors de la création du salon:', error);
         this.isLoading = false;
+        this.statusMessage = "Erreur lors de la création du salon. Veuillez réessayer.";
       }
     });
   }
 
   joinPrivateGame(): void {
-    if (!this.validatePlayerName()) return;
-    if (!this.roomCode.trim()) {
-      this.statusMessage = 'Veuillez entrer le code du salon';
+    if (!this.playerName.trim()) {
+      this.statusMessage = "Veuillez entrer votre nom avant de rejoindre un salon.";
       return;
     }
 
-    this.isLoading = true;
-    this.statusMessage = 'Connexion au salon...';
+    if (!this.roomCode.trim()) {
+      this.statusMessage = "Veuillez entrer un code de salon.";
+      return;
+    }
 
+    this.statusMessage = null;
+    this.isLoading = true;
     this.gameService.setPlayerName(this.playerName);
     this.gameService.setGameMode('private');
 
     this.gameService.joinPrivateGame(this.roomCode).subscribe({
       next: (response) => {
-        if (response.success) {
-          this.gameService.setRoomCode(this.roomCode);
-          this.gameService.getPlayerNames().subscribe(players => {
-            this.statusMessage = `Connecté au salon - Joueurs: ${players.player1} vs ${players.player2}`;
-            this.router.navigate(['/game']);
-          });
+        this.isLoading = false;
+
+        if ('success' in response && response.success) {
+          this.statusMessage = "Salon rejoint avec succès !";
+          this.handleMatchFound();
         } else {
-          this.statusMessage = 'Code de salon invalide ou salon plein';
+          this.statusMessage = "Salon rejoint avec succès !";
+          this.handleMatchFound();
         }
-        this.isLoading = false;
       },
-      error: (err) => {
-        console.error('Erreur lors de la connexion au salon:', err);
-        this.statusMessage = 'Erreur lors de la connexion au salon';
+      error: (error) => {
+        console.error('Erreur lors de la connexion au salon:', error);
         this.isLoading = false;
+        this.statusMessage = "Erreur lors de la connexion au salon. Code invalide ou salon complet.";
       }
     });
   }
 
-  private validatePlayerName(): boolean {
-    if (!this.playerName.trim()) {
-      this.statusMessage = 'Veuillez entrer votre nom';
-      return false;
-    }
-    return true;
+  copyToClipboard(text: string): void {
+    navigator.clipboard.writeText(text).then(
+      () => {
+        this.statusMessage = "Code copié dans le presse-papier !";
+        setTimeout(() => {
+          if (this.statusMessage === "Code copié dans le presse-papier !") {
+            this.statusMessage = null;
+          }
+        }, 2000);
+      },
+      () => {
+        this.statusMessage = "Impossible de copier le code. Veuillez le faire manuellement.";
+      }
+    );
   }
 
-  copyToClipboard(text: string): void {
-    navigator.clipboard.writeText(text).then(() => {
-      this.statusMessage = 'Code copié dans le presse-papiers !';
-    }).catch(err => {
-      this.statusMessage = 'Erreur lors de la copie du code';
-      console.error('Erreur de copie:', err);
+  // Gestion du match trouvé
+  handleMatchFound(): void {
+    this.isMatchFound = true;
+
+    // Récupérer les informations sur le match
+    this.gameService.players$.subscribe(players => {
+      if (players) {
+        // Déterminer qui est l'adversaire
+        if (players.player1 === this.playerName) {
+          this.selectedOpponent = { username: players.player2 };
+        } else {
+          this.selectedOpponent = { username: players.player1 };
+        }
+
+        // Démarrer le compte à rebours pour accepter
+        this.startMatchCountdown();
+      }
     });
   }
 
-  ngOnDestroy(): void {
-    this.cleanupQueue(); // Utiliser la méthode existante qui nettoie tout    }
+  startMatchCountdown(): void {
+    this.matchCountdown = 10;
+    this.matchTimer = interval(1000)
+      .pipe(takeWhile(() => this.matchCountdown > 0))
+      .subscribe(() => {
+        this.matchCountdown--;
+
+        if (this.matchCountdown <= 0) {
+          this.cancelMatch();
+        }
+      });
+  }
+
+  acceptMatch(): void {
+    if (this.matchTimer) {
+      this.matchTimer.unsubscribe();
+    }
+
+    // Accepter le match et passer à la partie
+    this.gameService.updateGameStatus('in_progress');
+    this.router.navigate(['/game']);
+  }
+
+  cancelMatch(): void {
+    if (this.matchTimer) {
+      this.matchTimer.unsubscribe();
+    }
+
+    this.isMatchFound = false;
+    this.selectedOpponent = null;
+
+    // Annuler le match dans le service
+    this.gameService.leaveGame().subscribe();
+  }
+
+  // Utilitaires
+  clearAllTimers(): void {
+    if (this.queueInterval) clearInterval(this.queueInterval);
+    if (this.queueStatusInterval) clearInterval(this.queueStatusInterval);
+    if (this.matchTimer) {
+      this.matchTimer.unsubscribe();
+    }
   }
 }

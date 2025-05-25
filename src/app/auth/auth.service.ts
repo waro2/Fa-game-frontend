@@ -4,6 +4,8 @@ import { Observable, throwError, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { JwtHelperService } from '@auth0/angular-jwt';
+import { map } from 'rxjs/operators';
+import { UserProfile } from '../shared/models/user.model';
 
 interface RegisterResponse {
   accessToken: string;
@@ -105,7 +107,7 @@ export class AuthService {
       return throwError(() => new Error('No refresh token available'));
     }
 
-    return this.http.post(`${environment.apiUrl}/api/v1/auth/refresh`,
+    return this.http.post(`${environment.apiUrl}/auth/refresh`,
       { refresh_token: refreshToken },
       {
         headers: new HttpHeaders({
@@ -144,18 +146,33 @@ export class AuthService {
   }
 
   // Récupération de l'utilisateur courant
-  getCurrentUser(): Observable<any> {
+  getCurrentUser(): Observable<UserProfile> {
     const token = this.getAccessToken();
 
     if (!token) {
       return throwError(() => new Error('No access token available'));
     }
 
-    return this.http.get(`${environment.apiUrl}/api/v1/auth/me`, {
+    return this.http.get<any>(`${environment.apiUrl}/auth/me`, {
       headers: new HttpHeaders({
         'Authorization': `Bearer ${token}`
       })
     }).pipe(
+      map(response => ({
+        id: response.id || response._id || this.getUserId() || '',
+        username: response.username || response.login || response.userName || '',
+        name: response.name || response.display_name || response.full_name || '',
+        email: response.email || '',
+        avatar: response.avatar || response.picture || response.image_url || undefined,
+        createdAt: response.createdAt ? new Date(response.createdAt) : new Date(),
+        lastLogin: response.lastLogin ? new Date(response.lastLogin) : undefined,
+        stats: response.stats ? {
+          gamesPlayed: response.stats.gamesPlayed || 0,
+          wins: response.stats.wins || 0,
+          losses: response.stats.losses || 0,
+          winRate: response.stats.winRate || 0
+        } : undefined
+      })),
       catchError(error => {
         if (error.status === 401) {
           this.clearTokens();
@@ -164,4 +181,7 @@ export class AuthService {
       })
     );
   }
+
+
+
 }

@@ -1,63 +1,44 @@
-import { Strategy } from './game-state.model';
-export interface User {
-  id: string;
+export interface UserProfile {
+  id: number;
   username: string;
   email: string;
-  profile: UserProfile;
-  stats: GameStats;
-  preferences: UserPreferences;
-  auth: AuthData;
+  created_at?: string;
+  updated_at?: string;
+  avatar_url?: string;
+  player_id?: number;
+  games_played?: number;
+  games_won?: number;
+  pfh_balance?: number;
 }
 
-export interface UserProfile {
-  avatar: string;
-  bio?: string;
-  country?: string;
-  joinDate: Date;
-  lastLogin: Date;
+export interface AuthTokens {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  user_id: number;
+  username: string;
+  expires_at: string;
 }
 
-export interface GameStats {
-  gamesPlayed: number;
-  gamesWon: number;
-  winRate: number;
-  currentStreak: number;
-  maxStreak: number;
-  favoriteStrategy: Strategy;
-  pfhRecord: number;
-  achievements: Achievement[];
-}
-
-export interface Achievement {
-  id: string;
-  name: string;
-  description: string;
-  unlocked: boolean;
-  unlockDate?: Date;
-  icon: string;
-}
-
-export interface UserPreferences {
-  theme: 'light' | 'dark' | 'strategic';
-  language: string;
-  notifications: {
-    gameStart: boolean;
-    turnAlert: boolean;
-    newsletter: boolean;
-  };
-  autoSacrifice: boolean;
-  defaultStrategy?: Strategy;
-}
-
-export interface AuthData {
-  lastTokenRefresh: Date;
-  accountStatus: 'active' | 'banned' | 'inactive';
-  roles: ('player' | 'admin' | 'premium')[];
-}
-
-// Pour les données de connexion
-export interface AuthUser {
+export interface LoginRequest {
   email: string;
   password: string;
-  rememberMe: boolean;
+}
+
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+  confirm_password: string;
+}
+
+export interface RefreshTokenRequest {
+  refresh_token: string;
+}
+
+export interface User {
+  id?: string | number;
+  username: string;
+  email?: string;
+  // Ajoutez d'autres propriétés selon vos besoins
 }

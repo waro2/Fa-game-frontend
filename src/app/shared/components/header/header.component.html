@@ -11,12 +11,22 @@
         </div>
 
         <nav class="desktop-nav">
-            <!-- Liste visible si l'utilisateur est connecté -->
-            <ul *ngIf="isAuthenticated(); else notConnected">
-                <li>Tableau de bord</li>
-                <li>Profil</li>
-                <li>Déconnexion</li>
-            </ul>
+            <!-- Version corrigée avec ng-template correctement structuré -->
+            <ng-container *ngIf="isAuthenticated(); else notConnected">
+                <ul>
+                    <li *ngFor="let link of authLinks">
+                        <a *ngIf="link.path" [routerLink]="link.path" routerLinkActive="active">
+                            <i [class]="link.icon"></i>
+                            {{ link.label }}
+                        </a>
+                        <a *ngIf="link.action" (click)="handleAction(link.action)" class="logout">
+                            <i [class]="link.icon"></i>
+                            {{ link.label }}
+                        </a>
+                    </li>
+                </ul>
+            </ng-container>
+
             <ng-template #notConnected>
                 <ul>
                     <li *ngFor="let link of navigationLinks">
@@ -35,14 +45,33 @@
             </button>
 
             <div class="mobile-menu" [class.open]="isMenuOpen">
-                <ul>
-                    <li *ngFor="let link of navigationLinks">
-                        <a [routerLink]="link.path" routerLinkActive="active" (click)="toggleMenu()">
-                            <i [class]="link.icon"></i>
-                            {{ link.label }}
-                        </a>
-                    </li>
-                </ul>
+                <!-- Même structure pour le menu mobile -->
+                <ng-container *ngIf="isAuthenticated(); else mobileNotConnected">
+                    <ul>
+                        <li *ngFor="let link of authLinks">
+                            <a *ngIf="link.path" [routerLink]="link.path" routerLinkActive="active"
+                                (click)="toggleMenu()">
+                                <i [class]="link.icon"></i>
+                                {{ link.label }}
+                            </a>
+                            <a *ngIf="link.action" (click)="handleAction(link.action); toggleMenu()" class="logout">
+                                <i [class]="link.icon"></i>
+                                {{ link.label }}
+                            </a>
+                        </li>
+                    </ul>
+                </ng-container>
+
+                <ng-template #mobileNotConnected>
+                    <ul>
+                        <li *ngFor="let link of navigationLinks">
+                            <a [routerLink]="link.path" routerLinkActive="active" (click)="toggleMenu()">
+                                <i [class]="link.icon"></i>
+                                {{ link.label }}
+                            </a>
+                        </li>
+                    </ul>
+                </ng-template>
             </div>
         </div>
     </div>

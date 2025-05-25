@@ -8,7 +8,7 @@
             <div class="turn-counter">Tour: {{ currentTurn }}/{{ MAX_TURNS }}</div>
             <div class="game-phase">Phase: {{ getPhaseName(gamePhase) }}</div>
         </div>
-        <div class="players-container">
+        <!-- <div class="players-container">
             <app-player-dashboard [playerName]="player1Name" [pfh]="favi1PFH" [currentTurn]="currentTurn"
                 [isActive]="currentPlayer === 'Favi1' && !gameOver" [currentStrategy]="favi1Strategy"
                 [hasSacrificed]="favi1Sacrifice" [currentCard]="favi1Card" [gamePhase]="gamePhase"
@@ -19,16 +19,16 @@
                 [isActive]="currentPlayer === 'Favi2' && !gameOver" [currentStrategy]="favi2Strategy"
                 [hasSacrificed]="favi2Sacrifice" [currentCard]="favi2Card" [gamePhase]="gamePhase"
                 (endTurn)="onEndTurn()">
-            </app-player-dashboard>
-        </div>
+            </app-player-dashboard> 
+        </div>-->
 
         <!-- <div class="game-info">
-            <div class="turn-counter">Tour: {{ currentTurn }}/20</div>
+             <div class="turn-counter">Tour: {{ currentTurn }}/20</div> 
             <div class="game-phase">Phase: {{ getPhaseName(gamePhase) }}</div>
         </div> -->
     </div>
 
-    <!-- <div class="players-container">
+    <div class="players-container">
         <app-player-dashboard player="Favi1" [pfh]="favi1PFH" [currentTurn]="currentTurn"
             [isActive]="currentPlayer === 'Favi1' && !gameOver" [currentStrategy]="favi1Strategy"
             [hasSacrificed]="favi1Sacrifice" [currentCard]="favi1Card" [gamePhase]="gamePhase" (endTurn)="onEndTurn()">
@@ -38,7 +38,7 @@
             [isActive]="currentPlayer === 'Favi2' && !gameOver" [currentStrategy]="favi2Strategy"
             [hasSacrificed]="favi2Sacrifice" [currentCard]="favi2Card" [gamePhase]="gamePhase" (endTurn)="onEndTurn()">
         </app-player-dashboard>
-    </div> -->
+    </div>
 
     <div class="cards-container" *ngIf="gamePhase === 'draw' && !gameOver">
         <app-fadu-card *ngIf="currentPlayer === 'Favi1'" [currentPlayer]="currentPlayer" [playerPFH]="favi1PFH"

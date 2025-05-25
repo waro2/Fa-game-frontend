@@ -7,6 +7,7 @@ import { FaduCard, Strategy } from '../../game.interfaces';
 import { OnInit } from '@angular/core';
 import { Player, GameTurn } from '../../game.interfaces';
 import { AuthService } from '../../../auth/auth.service';
+import { UserProfile } from '../../../shared/models/user.model';
 
 @Component({
   selector: 'app-game-board',
@@ -21,8 +22,8 @@ import { AuthService } from '../../../auth/auth.service';
 })
 export class GameBoardComponent implements OnInit {
   // Noms des joueurs
-  player1Name: string = 'Chargement...';
-  player2Name: string = 'Chargement...';
+  // player1Name: string = 'Chargement...';
+  // player2Name: string = 'Chargement...';
   currentPlayerName: string = '';
   currentPlayer: 'Favi1' | 'Favi2' = 'Favi1';
   gamePhase: 'draw' | 'strategy' | 'sacrifice' | 'reveal' | 'result' = 'draw';
@@ -272,20 +273,34 @@ export class GameBoardComponent implements OnInit {
   restartGame(): void {
     this.initializeGame();
   }
+  // Ajoutez ces propriétés à votre classe
+  currentUser: UserProfile | null = null;
+  isLoadingUser: boolean = false;
+  userError: string | null = null;
+
   getCurrentUser(): void {
-    // this.isLoadingUser = true;
-    //this.userError = null;
+    this.isLoadingUser = true;
+    this.userError = null;
 
     this.authService.getCurrentUser().subscribe({
-      next: (user: any) => {
-        //this.currentUser = user;
-        this.player1Name = user.username; // Mettez à jour le nom du joueur 1
-        // this.isLoadingUser = false;
+      next: (user: UserProfile) => {
+        this.currentUser = user;
+        this.currentPlayerName = user.username || 'Joueur';
+        this.isLoadingUser = false;
+
+        // Mettez à jour le nom du joueur dans le jeu si nécessaire
+        // this.player1Name = user.username;
       },
       error: (err: any) => {
-        //this.userError = 'Erreur lors de la récupération du profil';
-        //this.isLoadingUser = false;
+        this.userError = 'Erreur lors de la récupération du profil';
+        this.isLoadingUser = false;
         console.error('Erreur API:', err);
+
+        // Gestion d'erreur améliorée
+        if (err.status === 401) {
+          this.authService.logout();
+          // Redirigez vers la page de connexion si nécessaire
+        }
       }
     });
   }
